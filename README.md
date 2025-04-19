@@ -27,7 +27,7 @@ You can run BitPlay either directly using Go or via Docker Compose.
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/aculix/bitplay.git
     cd bitplay
     ```
 2.  **Download dependencies:**
