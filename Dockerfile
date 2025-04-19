@@ -1,34 +1,33 @@
-# Build stage
-FROM golang:1.24-alpine AS builder
+# Use an official Golang image as the base image for building
+FROM --platform=linux/arm64 golang:1.20 AS builder
 
-# Set working directory for the build
+# Set environment variables for Go
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64
+
+# Set the working directory
 WORKDIR /app
 
-# Copy module files first to leverage Docker cache
+# Copy Go module files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy all source files including client directory
+# Copy the source code
 COPY . .
 
-# Build the Go app with static linking
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o main .
+# Build the application
+RUN go build -o bitplay
 
-# Final stage
-FROM alpine:3.18
-RUN apk --no-cache add ca-certificates
+# Use a minimal base image for the final image
+FROM --platform=linux/arm64 alpine:latest
 
-# Set working directory in final image
-WORKDIR /app
+# Set the working directory
+WORKDIR /root/
 
-# Copy the compiled binary from builder
-COPY --from=builder /app/main .
+# Copy the binary from the builder
+COPY --from=builder /app/bitplay .
 
-# Copy client directory from builder
-COPY --from=builder /app/client ./client/
+# Expose the port your application will run on
+EXPOSE 8080
 
-# Expose the port your app runs on
-EXPOSE 3347
-
-# Command to run the application
-CMD ["/app/main"]
+# Run the application
+CMD ["./bitplay"]
